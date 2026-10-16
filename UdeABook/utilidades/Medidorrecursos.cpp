@@ -1,4 +1,4 @@
-#include "MedidorRecursos.h"
+#include "Medidorrecursos.h"
 
 MedidorRecursos::MedidorRecursos()
 {
@@ -32,6 +32,11 @@ void MedidorRecursos::restarBytes(size_t bytes)
     {
         memoriaActual -= bytes;
     }
+}
+
+void MedidorRecursos::fijarMemoriaActual(size_t bytes)
+{
+    memoriaActual = bytes;
 }
 
 void MedidorRecursos::reiniciar()

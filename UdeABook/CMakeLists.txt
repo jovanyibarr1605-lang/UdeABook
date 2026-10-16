@@ -1,36 +1,25 @@
 cmake_minimum_required(VERSION 3.19)
 project(UdeABook LANGUAGES CXX)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-qt_standard_project_setup()
-
-qt_add_executable(UdeABook
-    mainDemo.cpp
-    ListaDinamica.h
-    Medidorrecursos.h
-    Medidorrecursos.cpp
-    Usuario.h
-    Usuario.cpp
-    Album.h
-    Mensaje.h
-    Persistencia.h
-    Persistencia.cpp
-    Sesion.h
-    Sesion.cpp
-    Persistencia.h
-    Persistencia.cpp
-    Sesion.h
-    Sesion.cpp
+add_executable(UdeABook
+    main.cpp
+    modelo/Usuario.cpp
+    modelo/Album.cpp
+    modelo/Foto.cpp
+    modelo/Mensaje.cpp
+    servicios/Persistencia.cpp
+    servicios/Sesion.cpp
+    nucleo/UdeABook.cpp
+    utilidades/Medidorrecursos.cpp
 )
 
-target_link_libraries(UdeABook
-    PRIVATE
-        Qt::Core
-)
-
-install(TARGETS UdeABook
-    BUNDLE  DESTINATION .
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+target_include_directories(UdeABook PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/modelo
+    ${CMAKE_CURRENT_SOURCE_DIR}/servicios
+    ${CMAKE_CURRENT_SOURCE_DIR}/nucleo
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilidades
 )

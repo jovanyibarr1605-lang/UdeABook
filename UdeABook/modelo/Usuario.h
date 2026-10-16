@@ -1,7 +1,7 @@
 #ifndef USUARIO_H
 #define USUARIO_H
 
-#include <iostream>
+#include <iosfwd>
 #include <string>
 #include "ListaDinamica.h"
 
@@ -10,6 +10,7 @@
 // porque Usuario solo los guarda como punteros.
 class Album;
 class Mensaje;
+class MedidorRecursos;
 
 class Usuario
 {
@@ -23,17 +24,13 @@ private:
     std::string pais;
     std::string fechaInscripcion;
 
-    // No propietarias: solo referencian a Usuario/Mensaje que viven en otro lado
-    // (en UdeABook o en la lista de amigos de cada quien).
     ListaDinamica<Usuario*> amigos;
-    ListaDinamica<Usuario*> solicitudes; // solicitudes de amistad pendientes recibidas
-
-    // Propietaria: Usuario crea y destruye sus propios albumes.
+    ListaDinamica<Usuario*> solicitudes;
     ListaDinamica<Album*> albumes;
-
-    // No propietarias: UdeABook conserva la instancia canonica de cada Mensaje.
     ListaDinamica<Mensaje*> mensajesEnviados;
     ListaDinamica<Mensaje*> mensajesRecibidos;
+
+    void liberarAlbumes();
 
 public:
     Usuario();
@@ -78,23 +75,23 @@ public:
     ListaDinamica<Mensaje*>& getMensajesRecibidos();
     const ListaDinamica<Mensaje*>& getMensajesRecibidos() const;
 
-    // --- Setters (solo de los campos que tiene sentido modificar en sesion) ---
     void setFotoPerfil(const std::string& nuevaFoto);
     void setClave(const std::string& nuevaClave);
     void setCiudad(const std::string& nuevaCiudad);
     void setPais(const std::string& nuevoPais);
 
-    // --- Helpers de estructura (listos para usar) ---
-    bool tieneAmigo(Usuario* candidato) const;
-    bool tieneSolicitudPendienteDe(Usuario* candidato) const;
-    void agregarAlbum(Album* album); // Usuario pasa a ser propietario de ese Album*
+    bool tieneAmigo(const Usuario* candidato, MedidorRecursos* medidor = nullptr) const;
+    bool tieneSolicitudPendienteDe(const Usuario* candidato,
+                                   MedidorRecursos* medidor = nullptr) const;
+    bool agregarAmigo(Usuario* nuevoAmigo, MedidorRecursos* medidor = nullptr);
+    bool agregarSolicitudDe(Usuario* solicitante, MedidorRecursos* medidor = nullptr);
+    bool retirarSolicitudDe(const Usuario* solicitante, MedidorRecursos* medidor = nullptr);
+    void agregarAlbum(Album* album);
+    void agregarMensajeEnviado(Mensaje* mensaje);
+    void agregarMensajeRecibido(Mensaje* mensaje);
 
-    // --- Logica de negocio: la implementa Persona B (funcion III) ---
-    // Declaradas aqui porque son parte de la interfaz publica de Usuario,
-    // pero el cuerpo (validaciones de solicitud repetida, cruzada, etc.)
-    // se define en Usuario.cpp junto con el resto de funcion III.
-    void enviarSolicitud(Usuario& destino);
-    void aceptarSolicitud(Usuario& solicitante);
+    void enviarSolicitud(Usuario& destino, MedidorRecursos* medidor = nullptr);
+    void aceptarSolicitud(Usuario& solicitante, MedidorRecursos* medidor = nullptr);
 };
 
 #endif // USUARIO_H

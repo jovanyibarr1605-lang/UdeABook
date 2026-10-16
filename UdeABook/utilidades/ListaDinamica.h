@@ -80,11 +80,11 @@ public:
         cantidadElementos++;
     }
 
-    void eliminarEn(int indice)
+    bool eliminarEn(int indice)
     {
         if (indice < 0 || indice >= cantidadElementos)
         {
-            return;
+            return false;
         }
 
         for (int i = indice; i < cantidadElementos - 1; i++)
@@ -93,6 +93,7 @@ public:
         }
 
         cantidadElementos--;
+        return true;
     }
 
     T& obtener(int indice)
@@ -108,6 +109,16 @@ public:
     T& operator[](int indice)
     {
         return datos[indice];
+    }
+
+    const T& operator[](int indice) const
+    {
+        return datos[indice];
+    }
+
+    void limpiar()
+    {
+        cantidadElementos = 0;
     }
 
     int getCantidad() const

@@ -17,6 +17,7 @@ public:
 
     void sumarBytes(size_t bytes);
     void restarBytes(size_t bytes);
+    void fijarMemoriaActual(size_t bytes);
 
     void reiniciar();
 

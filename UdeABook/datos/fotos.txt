@@ -1,0 +1,10 @@
+usuario0002|Viaje1|2026-01-01|1501000|/users/subruta-fija/usuario0002/albums/Viaje1/foto1.png|0
+usuario0002|Viaje1|2026-01-02|1502000|/users/subruta-fija/usuario0002/albums/Viaje1/foto2.png|1
+usuario0002|Viaje1|2026-01-03|1503000|/users/subruta-fija/usuario0002/albums/Viaje1/foto3.png|2
+usuario0002|Viaje1|2026-01-04|1504000|/users/subruta-fija/usuario0002/albums/Viaje1/foto4.png|3
+usuario0002|Viaje1|2026-01-05|1505000|/users/subruta-fija/usuario0002/albums/Viaje1/foto5.png|4
+usuario0002|Viaje2|2026-01-01|1501000|/users/subruta-fija/usuario0002/albums/Viaje2/foto1.png|0
+usuario0002|Viaje2|2026-01-02|1502000|/users/subruta-fija/usuario0002/albums/Viaje2/foto2.png|1
+usuario0002|Viaje2|2026-01-03|1503000|/users/subruta-fija/usuario0002/albums/Viaje2/foto3.png|2
+usuario0002|Viaje2|2026-01-04|1504000|/users/subruta-fija/usuario0002/albums/Viaje2/foto4.png|3
+usuario0002|Viaje2|2026-01-05|1505000|/users/subruta-fija/usuario0002/albums/Viaje2/foto5.png|4

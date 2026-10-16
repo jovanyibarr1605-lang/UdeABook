@@ -4,7 +4,7 @@
 #include <string>
 #include "ListaDinamica.h"
 #include "Usuario.h"
-#include "MedidorRecursos.h"
+#include "Medidorrecursos.h"
 
 // Funcion II: autenticacion y 3 fotos de perfil de amigos con prioridad
 // ponderada (ver "Fotos de perfil con prioridad" en el informe).
@@ -27,11 +27,11 @@ private:
     // Peso segun cuantos amigos tiene el candidato en comun con el usuario activo.
     static double pesoPorAmigosComunes(int cantidadComunes);
 
-    int contarAmigosComunes(Usuario* candidato) const;
+    int contarAmigosComunes(Usuario* candidato, MedidorRecursos& medidor) const;
 
     // Sorteo ponderado sin repeticion sobre los amigos del usuario activo.
     // Si hay menos de 3 amigos, devuelve los que haya (sin repetirlos).
-    ListaDinamica<Usuario*> sortearFotos(MedidorRecursos& medidor);
+    ListaDinamica<Usuario*> sortearFotos(MedidorRecursos& medidor, bool excluirUltimaSeleccion);
 
 public:
     explicit SesionLogin(Usuario* usuario);

@@ -1,7 +1,8 @@
 #include "Usuario.h"
-#include "Album.h"   // Lo crea Persona B. Hace falta la definicion completa
-// aqui (no basta con la adelantada de Usuario.h) porque
-// el destructor necesita saber como destruir cada Album.
+#include "Album.h"
+#include "Medidorrecursos.h"
+
+#include <ostream>
 
 Usuario::Usuario()
 {
@@ -45,18 +46,16 @@ Usuario::Usuario(const Usuario& otro)
     pais = otro.pais;
     fechaInscripcion = otro.fechaInscripcion;
 
-    // amigos, solicitudes y mensajes son referencias: se copian los punteros,
-    // no los objetos apuntados (Usuario no es propietario de esos objetos).
     amigos = otro.amigos;
     solicitudes = otro.solicitudes;
     mensajesEnviados = otro.mensajesEnviados;
     mensajesRecibidos = otro.mensajesRecibidos;
 
-    // albumes si es propiedad de Usuario: se clona cada Album para que la
-    // copia no comparta memoria con el original (evita doble liberacion).
     for (int i = 0; i < otro.albumes.getCantidad(); i++)
     {
-        albumes.agregar(new Album(*otro.albumes.obtener(i)));
+        Album* copia = new Album(*otro.albumes.obtener(i));
+        copia->setPropietario(this);
+        albumes.agregar(copia);
     }
 }
 
@@ -81,15 +80,13 @@ Usuario& Usuario::operator=(const Usuario& otro)
     mensajesEnviados = otro.mensajesEnviados;
     mensajesRecibidos = otro.mensajesRecibidos;
 
-    for (int i = 0; i < albumes.getCantidad(); i++)
-    {
-        delete albumes.obtener(i);
-    }
-    albumes = ListaDinamica<Album*>();
+    liberarAlbumes();
 
     for (int i = 0; i < otro.albumes.getCantidad(); i++)
     {
-        albumes.agregar(new Album(*otro.albumes.obtener(i)));
+        Album* copia = new Album(*otro.albumes.obtener(i));
+        copia->setPropietario(this);
+        albumes.agregar(copia);
     }
 
     return *this;
@@ -97,12 +94,16 @@ Usuario& Usuario::operator=(const Usuario& otro)
 
 Usuario::~Usuario()
 {
+    liberarAlbumes();
+}
+
+void Usuario::liberarAlbumes()
+{
     for (int i = 0; i < albumes.getCantidad(); i++)
     {
         delete albumes.obtener(i);
     }
-    // amigos, solicitudes, mensajesEnviados y mensajesRecibidos NO se liberan
-    // aqui: son referencias a objetos que posee otra clase (UdeABook u otro Usuario).
+    albumes.limpiar();
 }
 
 bool Usuario::operator==(const Usuario& otro) const
@@ -152,10 +153,14 @@ void Usuario::setPais(const std::string& nuevoPais) { pais = nuevoPais; }
 
 // --- Helpers de estructura ---
 
-bool Usuario::tieneAmigo(Usuario* candidato) const
+bool Usuario::tieneAmigo(const Usuario* candidato, MedidorRecursos* medidor) const
 {
     for (int i = 0; i < amigos.getCantidad(); i++)
     {
+        if (medidor != nullptr)
+        {
+            medidor->contarIteracion();
+        }
         if (amigos.obtener(i) == candidato)
         {
             return true;
@@ -164,10 +169,14 @@ bool Usuario::tieneAmigo(Usuario* candidato) const
     return false;
 }
 
-bool Usuario::tieneSolicitudPendienteDe(Usuario* candidato) const
+bool Usuario::tieneSolicitudPendienteDe(const Usuario* candidato, MedidorRecursos* medidor) const
 {
     for (int i = 0; i < solicitudes.getCantidad(); i++)
     {
+        if (medidor != nullptr)
+        {
+            medidor->contarIteracion();
+        }
         if (solicitudes.obtener(i) == candidato)
         {
             return true;
@@ -176,24 +185,85 @@ bool Usuario::tieneSolicitudPendienteDe(Usuario* candidato) const
     return false;
 }
 
+bool Usuario::agregarAmigo(Usuario* nuevoAmigo, MedidorRecursos* medidor)
+{
+    if (nuevoAmigo == nullptr || nuevoAmigo == this || tieneAmigo(nuevoAmigo, medidor))
+    {
+        return false;
+    }
+    amigos.agregar(nuevoAmigo);
+    return true;
+}
+
+bool Usuario::agregarSolicitudDe(Usuario* solicitante, MedidorRecursos* medidor)
+{
+    if (solicitante == nullptr || solicitante == this || tieneAmigo(solicitante, medidor) ||
+        tieneSolicitudPendienteDe(solicitante, medidor))
+    {
+        return false;
+    }
+    solicitudes.agregar(solicitante);
+    return true;
+}
+
+bool Usuario::retirarSolicitudDe(const Usuario* solicitante, MedidorRecursos* medidor)
+{
+    for (int i = 0; i < solicitudes.getCantidad(); i++)
+    {
+        if (medidor != nullptr)
+        {
+            medidor->contarIteracion();
+        }
+        if (solicitudes.obtener(i) == solicitante)
+        {
+            solicitudes.eliminarEn(i);
+            return true;
+        }
+    }
+    return false;
+}
+
 void Usuario::agregarAlbum(Album* album)
 {
-    albumes.agregar(album);
+    if (album != nullptr)
+    {
+        album->setPropietario(this);
+        albumes.agregar(album);
+    }
 }
 
-// --- Funcion III (solicitudes de amistad) ---
-// TODO(Persona B): completar con las validaciones del informe:
-// que el nombre exista, que no sea el usuario activo, que no haya amistad
-// previa y que no exista ya una solicitud pendiente (en cualquiera de los
-// dos sentidos) antes de agregar a "solicitudes"; y en aceptarSolicitud,
-// quitar la referencia pendiente y agregar a ambos en "amigos".
-
-void Usuario::enviarSolicitud(Usuario& destino)
+void Usuario::agregarMensajeEnviado(Mensaje* mensaje)
 {
-    (void)destino; // evita warning de parametro sin usar mientras se implementa
+    if (mensaje != nullptr)
+    {
+        mensajesEnviados.agregar(mensaje);
+    }
 }
 
-void Usuario::aceptarSolicitud(Usuario& solicitante)
+void Usuario::agregarMensajeRecibido(Mensaje* mensaje)
 {
-    (void)solicitante;
+    if (mensaje != nullptr)
+    {
+        mensajesRecibidos.agregar(mensaje);
+    }
+}
+
+void Usuario::enviarSolicitud(Usuario& destino, MedidorRecursos* medidor)
+{
+    if (&destino == this || tieneAmigo(&destino, medidor) ||
+        tieneSolicitudPendienteDe(&destino, medidor) ||
+        destino.tieneSolicitudPendienteDe(this, medidor))
+    {
+        return;
+    }
+    destino.agregarSolicitudDe(this, medidor);
+}
+
+void Usuario::aceptarSolicitud(Usuario& solicitante, MedidorRecursos* medidor)
+{
+    if (retirarSolicitudDe(&solicitante, medidor))
+    {
+        agregarAmigo(&solicitante, medidor);
+        solicitante.agregarAmigo(this, medidor);
+    }
 }

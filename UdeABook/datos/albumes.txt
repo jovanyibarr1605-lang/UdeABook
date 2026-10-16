@@ -1,0 +1,2 @@
+usuario0002|Viaje1|/users/subruta-fija/usuario0002/albums/Viaje1|amigos
+usuario0002|Viaje2|/users/subruta-fija/usuario0002/albums/Viaje2|publico

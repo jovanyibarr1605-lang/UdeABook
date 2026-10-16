@@ -39,14 +39,15 @@ double SesionLogin::pesoPorAmigosComunes(int cantidadComunes)
     return 3.5;
 }
 
-int SesionLogin::contarAmigosComunes(Usuario* candidato) const
+int SesionLogin::contarAmigosComunes(Usuario* candidato, MedidorRecursos& medidor) const
 {
     int comunes = 0;
     ListaDinamica<Usuario*>& amigosDelCandidato = candidato->getAmigos();
 
     for (int i = 0; i < amigosDelCandidato.getCantidad(); i++)
     {
-        if (usuarioActivo->tieneAmigo(amigosDelCandidato.obtener(i)))
+        medidor.contarIteracion();
+        if (usuarioActivo->tieneAmigo(amigosDelCandidato.obtener(i), &medidor))
         {
             comunes++;
         }
@@ -55,7 +56,8 @@ int SesionLogin::contarAmigosComunes(Usuario* candidato) const
     return comunes;
 }
 
-ListaDinamica<Usuario*> SesionLogin::sortearFotos(MedidorRecursos& medidor)
+ListaDinamica<Usuario*> SesionLogin::sortearFotos(MedidorRecursos& medidor,
+                                                   bool excluirUltimaSeleccion)
 {
     ListaDinamica<Usuario*> seleccionados;
 
@@ -64,11 +66,48 @@ ListaDinamica<Usuario*> SesionLogin::sortearFotos(MedidorRecursos& medidor)
     ListaDinamica<double> pesos;
 
     ListaDinamica<Usuario*>& amigos = usuarioActivo->getAmigos();
+    int objetivo = amigos.getCantidad() < 3 ? amigos.getCantidad() : 3;
+    int disponiblesSinRepetir = 0;
+    for (int i = 0; i < amigos.getCantidad(); i++)
+    {
+        bool estabaEnLaSeleccionAnterior = false;
+        for (int j = 0; j < ultimaSeleccion.getCantidad(); j++)
+        {
+            if (amigos.obtener(i) == ultimaSeleccion.obtener(j))
+            {
+                estabaEnLaSeleccionAnterior = true;
+                break;
+            }
+        }
+        if (!estabaEnLaSeleccionAnterior)
+        {
+            disponiblesSinRepetir++;
+        }
+    }
+
+    bool excluir = excluirUltimaSeleccion && disponiblesSinRepetir >= objetivo;
     for (int i = 0; i < amigos.getCantidad(); i++)
     {
         medidor.contarIteracion();
         Usuario* candidato = amigos.obtener(i);
-        int comunes = contarAmigosComunes(candidato);
+        bool estabaEnLaSeleccionAnterior = false;
+        if (excluir)
+        {
+            for (int j = 0; j < ultimaSeleccion.getCantidad(); j++)
+            {
+                if (candidato == ultimaSeleccion.obtener(j))
+                {
+                    estabaEnLaSeleccionAnterior = true;
+                    break;
+                }
+            }
+        }
+        if (estabaEnLaSeleccionAnterior)
+        {
+            continue;
+        }
+
+        int comunes = contarAmigosComunes(candidato, medidor);
         candidatos.agregar(candidato);
         pesos.agregar(pesoPorAmigosComunes(comunes));
     }
@@ -114,7 +153,7 @@ ListaDinamica<Usuario*> SesionLogin::sortearFotos(MedidorRecursos& medidor)
 
 ListaDinamica<Usuario*> SesionLogin::fotosIniciales(MedidorRecursos& medidor)
 {
-    ultimaSeleccion = sortearFotos(medidor);
+    ultimaSeleccion = sortearFotos(medidor, false);
     return ultimaSeleccion;
 }
 
@@ -125,7 +164,7 @@ ListaDinamica<Usuario*> SesionLogin::refrescarFotos(MedidorRecursos& medidor)
         return ultimaSeleccion;
     }
 
-    ultimaSeleccion = sortearFotos(medidor);
+    ultimaSeleccion = sortearFotos(medidor, true);
     refrescoDisponible = false;
     return ultimaSeleccion;
 }
